@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/gorilla/handlers"
-
 	router "github.com/Niket/golang-react-todo/Router"
 )
 

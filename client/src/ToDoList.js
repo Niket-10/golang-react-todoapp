@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import axios from "axios";
-import {Card, Header,Button, Form ,Input,Icon} from "semantic-ui-react";
+import {Card, Header, Form, Input, Icon} from "semantic-ui-react";
 
 let endpoint = "http://localhost:9000";
 
@@ -16,7 +16,6 @@ class ToDoList extends Component {
     
     componentDidMount() {
         this.getTask();
-
     }
 
 
@@ -26,24 +25,24 @@ class ToDoList extends Component {
         });
     };
 
-    onSubmit = () => {
-        let {task} = this.state
-        if(task) {
-            axios.post(endpoint + "/api/task" , {task,},
-            {
-                headers:{
-                "Content-Type":"application/x-www-form-urlencoded",
-
-            },
-        }).then((res) => {
-                this.getTask();
-                this.setState({ 
-                    task:"",
-                });
-                console.log(res);
-            });
+    onSubmit = (event) => {
+        event.preventDefault();
+        const { task } = this.state;
+        if (!task) {
+          console.error("Task cannot be empty.");
+          return;
         }
-    };
+        axios
+          .post(endpoint + "/api/tasks", {task})
+          .then((response) => {
+            console.log("Task created successfully.", response);
+            this.getTask();
+            this.setState({ task: "" });
+          })
+          .catch((error) => {
+            console.error("Failed to create task.", error);
+          });
+      };
 
     getTask = () => {
         axios.get(endpoint + "/api/task").then((res)=>{
@@ -59,32 +58,47 @@ class ToDoList extends Component {
                             style["textDecorationLine"] = "Line-through";
                         }
                         return(
-                            <Card key={item._id} color={color} fluid className="rough">
+                            <Card key={item._id} 
+                            color={color} 
+                            fluid 
+                            className="rough">
                                 <Card.Content>
                                     <Card.Header texAlign="left">
                                         <div style={style}>
                                             {item.task}
                                         </div>
                                     </Card.Header>
+
                                     <Card.Meta textAlign="right">
-                                        <Icon name="check Circle"
+
+                                        <Icon name="check circle"
                                         color="blue"
-                                        onClick={()=>this.updateTask(item._id)}
+                                        onClick={()=>this.doneTask(item._id)}
                                         />
-                                        <span style={{paddingRight:10}}>Undo</span>
+                                        <span style={{paddingRight:10}}>Done
+                                        </span>
+
+                                        <Icon name="undo"
+                                        color="yellow"
+                                        onClick={()=>this.undoTask(item._id)}
+                                        />
+                                        <span style={{paddingRight:10}}>Undo
+                                        </span>
 
                                         <Icon name="delete"
                                         color="red"
                                         onClick={()=>this.deleteTask(item._id)}
                                         />
-                                        <span style={{paddingRight:10}}>Delete</span>
+                                        <span style={{paddingRight:10}}>Delete
+                                        </span>
                                     </Card.Meta>
                                 </Card.Content>
                             </Card>
                         );
                     })
                 });
-            }else{
+            }
+            else{
                 this.setState({
                     items:[],
                 });
@@ -93,51 +107,54 @@ class ToDoList extends Component {
 
     };
 
-    updateTask = (id) => {
-        axios.put(endpoint + "/api/task" + id, {
-            headers:{
-                "Content-Type":"application/x-www-form-urlencoded",
-            },
-        }).then((res)=>{
-            console.log(res);
+
+    doneTask = (taskId, newTask) => {
+        axios
+          .put(endpoint + "/api/tasks/" + taskId, { task: newTask })
+          .then((response) => {
+            console.log("Task updated successfully.", response);
             this.getTask();
-        });
+          })
+          .catch((error) => {
+            console.error("Failed to update task.", error);
+          });
+      };
 
-    }
 
-    undoTask = (id) => {
-
-        axios.put(endpoint + "api/undoTask" + id, {
-            headers:{
-                "Content-Type":"application/x-www-form-urlencoded",
-            },
-        }).then((res)=>{
-            console.log(res);
+      undoTask = (taskId) => {
+        axios
+          .put(endpoint + "/api/undoTask/" + taskId )
+          .then((response) => {
+            console.log("Task undone successfully.", response);
             this.getTask();
-        });
+          })
+          .catch((error) => {
+            console.error("Failed to undo task.", error);
+          });
+      };
 
-    }
 
-    deleteTask = (id) => {
-        axios.delete(endpoint +"api/deleteTask" + id , {
-            headers:{
-                "Content-Type":"application/x-www-form-urlencoded",
-            },
-        }).then((res)=>{
-            console.log(res);
+    deleteTask = (taskId) => {
+        axios
+            .delete(endpoint + "/api/deleteTask/" + taskId)
+            .then((response) => {
+            console.log("Task deleted successfully.", response);
             this.getTask();
-        });
-    };
+            })
+            .catch((error) => {
+            console.error("Failed to delete task.", error);
+            });
+        };
 
     render() {
         return(
-            <div className="div1">
-                <div className="row">
-                    <Header className="header" as="h2" color="yellow">
-                        To Do List
+            <div className="row">
+                <div className="div1">
+                    <Header className="mainHeader" as="h2" color="yellow">
+                        Your To-Do List
                     </Header>
                 </div>
-                <div className="row">
+                <div className="div2">
                     <Form onSubmit={this.onSubmit}>
                         <Input 
                         className="input"
@@ -148,9 +165,9 @@ class ToDoList extends Component {
                         fluid
                         placeholder="Create Task"
                         />
-                        <Button className="button">
+                        {/* <Button className="button">
                             Create Task
-                        </Button>
+                        </Button> */}
                     </Form>
                 </div>
                 <div className="row">
@@ -163,3 +180,58 @@ class ToDoList extends Component {
     }
 }
 export default ToDoList;
+
+
+
+ // onSubmit = (e) => {
+    //     e.preventDefault();
+    //     let {task} = this.state
+    //     if(task) {
+    //         axios.post(endpoint + "/api/task" , {task,},
+    //         {
+    //             headers:{
+    //                 "Content-Type":"application/x-www-form-urlencoded",
+    //         },
+    //     }).then((res) => {
+    //             this.getTask();
+    //             this.setState({ task:"",});
+    //         });
+    //     }
+    // };
+        // updateTask = (id) => {
+
+    //     axios.put(endpoint + "/api/taskComplete" + id, {
+    //         headers:{
+    //             "Content-Type":"application/x-www-form-urlencoded",
+    //         },
+    //     }).then((res)=>{
+    //         console.log(res);
+    //         this.getTask();
+    //     });
+
+    // }
+
+    // undoTask = (id) => {
+
+    //     axios.put(endpoint + "api/undoTask" + id, {
+    //         headers:{
+    //             "Content-Type":"application/x-www-form-urlencoded",
+    //         },
+    //     }).then((res)=>{
+    //         console.log(res);
+    //         this.getTask();
+    //     });
+
+    // }
+
+    // deleteTask = (id) => {
+
+    //     axios.delete(endpoint +"api/deleteTask" + id , {
+    //         headers:{
+    //             "Content-Type":"application/x-www-form-urlencoded",
+    //         },
+    //     }).then((res)=>{
+    //         console.log(res);
+    //         this.getTask();
+    //     });
+    // };
